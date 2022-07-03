@@ -1,8 +1,34 @@
 [
-    {
-        "title": "Test Child 1",
-        "instructions": ["Add to"],
-        "ingerdiants": ["salt"],
-        "categories": ["Assian", "Dessert"]
-    }
+  {
+    "Title": "Hot chocolate",
+    "Instructions": [
+      "Pour in the milk",
+      "Add cocoa powder",
+      "Add sugar"
+    ],
+    "Ingerdiants": [
+      "milk",
+      "sugar",
+      "cocoa powder"
+    ],
+    "Categories": [
+      "Egyptian Food",
+      "Greek Food"
+    ]
+  },
+  {
+    "Title": "Tea",
+    "Instructions": [
+      "Boil water",
+      "Add tea"
+    ],
+    "Ingerdiants": [
+      "tea packet",
+      "sugar",
+      "water"
+    ],
+    "Categories": [
+      "Egyptian Food"
+    ]
+  }
 ]

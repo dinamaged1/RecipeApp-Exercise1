@@ -13,16 +13,13 @@ namespace Exercise1
         public List<string> Instructions { get; set; } = new();
         public List<string> Ingerdiants { get; set; } = new();
         public List<string> Categories { get; set; } = new();
+
         public Recipe(string title, List<string> instructions, List<string> ingerdiants, List<string> categories)
         {
             Title = title;
             Instructions = instructions;
             Ingerdiants = ingerdiants;
             Categories = categories;
-        }
-        public Recipe()
-        {
-                
         }
     }
 }
