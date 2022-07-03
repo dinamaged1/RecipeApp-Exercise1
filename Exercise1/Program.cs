@@ -28,23 +28,23 @@ public class Program
         new FigletText("Recipe App")
         .Centered()
         .Color(Color.Fuchsia));
-        string[] actions = new string[] { "Recipe", "Category", "Exit" };
+        string[] choices = new string[] { "Recipe", "Category", "Exit" };
 
         while (true)
         {
-            actions = new string[] { "Recipe", "Category", "Exit" };
-            string action1 = ConsoleSelection(actions);
-            var action2 = "";
-            switch (action1)
+            choices = new string[] { "Recipe", "Category", "Exit" };
+            string firstMenuChoice = ConsoleSelection(choices);
+            var secondMenuChoice = "";
+            switch (firstMenuChoice)
             {
                 case "Recipe":
-                    actions = new string[] { "Add recipe", "Edit recipe", "List recipes", "Exit" };
-                    action2 = ConsoleSelection(actions);
+                    choices = new string[] { "Add recipe", "Edit recipe", "List recipes", "Exit" };
+                    secondMenuChoice = ConsoleSelection(choices);
                     break;
 
                 case "Category":
-                    actions = new string[] { "Add Category", "Edit Category", "Exit" };
-                    action2 = ConsoleSelection(actions);
+                    choices = new string[] { "Add Category", "Edit Category", "Exit" };
+                    secondMenuChoice = ConsoleSelection(choices);
 
                     break;
 
@@ -55,7 +55,7 @@ public class Program
                     break;
             }
 
-            switch (action2)
+            switch (secondMenuChoice)
             {
                 case "Add recipe":
                     bool addingStatus = await AddRecipe(categoryList, recipesList);
@@ -121,6 +121,7 @@ public class Program
 
     public static bool AddCategory()
     {
+        //TODO
         return true;
     }
 
