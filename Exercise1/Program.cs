@@ -105,7 +105,7 @@ static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
     string ingerdiants = AnsiConsole.Ask<string>("What's recipe ingerdiants? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
     var categories = ConsoleMultiSelection(categoryList, "What's recipe categories?");
 
-    if(string.IsNullOrEmpty(title)|| string.IsNullOrEmpty(instructions) || string.IsNullOrEmpty(ingerdiants))
+    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(instructions) || string.IsNullOrEmpty(ingerdiants))
     {
         AnsiConsole.WriteLine("[red3_1]Input data is not complete. please enter valid data![/]");
         return;
@@ -126,8 +126,8 @@ static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
         string jsonString = JsonSerializer.Serialize(recipesList, options);
         await WriteJsonFile("recipe", jsonString);
     }
-    catch(Exception ex)
-    { 
+    catch (Exception ex)
+    {
         AnsiConsole.WriteLine($"[red1]{ex.Message}[/]");
         Environment.Exit(0);
     }
@@ -135,9 +135,10 @@ static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
 
 static void ListRecipes(List<Recipe> recipesList)
 {
-    if(recipesList.Count == 0)
+    if (recipesList.Count == 0)
     {
-        AnsiConsole.WriteLine("No recipes yet 🙁");
+        AnsiConsole.WriteLine("No recipes added yet!");
+        return;
     }
     //create table to view all recipes
     var recipeTable = new Table();
@@ -164,7 +165,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     Console.WriteLine(recipeSelectedGuid);
     var selectedRecipe = recipesList.FirstOrDefault(x => x.Id == recipeSelectedGuid);
 
-    //
+    //ask user about the edits want then edit the data needed
     AnsiConsole.WriteLine("what do you want to edit");
     string[] avaliableEdits = new string[] { "Title", "Instructions", "Ingerdiants", "Categories", "Exit" };
     string typeOfEdit = ConsoleSelection(avaliableEdits, "How can I serve you?");
@@ -186,6 +187,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
                 AnsiConsole.WriteLine("Edit faild!");
             }
             break;
+
         case "Instructions":
             string newRecipeInstructions = AnsiConsole.Ask<string>("What's the new Instructions?(ex: Pour in the Milk-Add cocoa powder-Add sugar)");
             if (newRecipeInstructions != "")
@@ -197,6 +199,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
                 AnsiConsole.WriteLine("Edit faild!");
             }
             break;
+
         case "Ingerdiants":
             string newRecipeIngrediants = AnsiConsole.Ask<string>("What's the new Ingrediants?(ex: milk-water-cocoa powder)");
             if (newRecipeIngrediants != "")
@@ -208,6 +211,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
                 AnsiConsole.WriteLine("Edit faild!");
             }
             break;
+
         case "Categories":
             List<string> newRecipeCategories = ConsoleMultiSelection(categoryList, "What's recipe categories ? ");
             if (newRecipeCategories != null)
@@ -219,9 +223,11 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
                 AnsiConsole.WriteLine("Edit faild!");
             }
             break;
+
         case "Exit":
             Environment.Exit(0);
             break;
+
         default:
             break;
     }
