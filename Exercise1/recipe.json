@@ -1,8 +1,25 @@
 [
   {
+    "Id": "00000000-0000-0000-0000-000000000000",
+    "Title": "Tea",
+    "Instructions": [
+      "Boil water",
+      "Add tea"
+    ],
+    "Ingerdiants": [
+      "tea packet",
+      "sugar",
+      "water"
+    ],
+    "Categories": [
+      "Egyptian Food"
+    ]
+  },
+  {
+    "Id": "e52c6e7d-4210-4cc3-9c28-9e154f4b1875",
     "Title": "Hot chocolate",
     "Instructions": [
-      "Pour in the milk",
+      "pour in the milk",
       "Add cocoa powder",
       "Add sugar"
     ],
@@ -17,18 +34,17 @@
     ]
   },
   {
-    "Title": "Tea",
+    "Id": "90e87e59-270a-4bca-9fde-212481c1750b",
+    "Title": "Hot chocolate",
     "Instructions": [
-      "Boil water",
-      "Add tea"
+      "Add milk"
     ],
     "Ingerdiants": [
-      "tea packet",
-      "sugar",
-      "water"
+      "milk"
     ],
     "Categories": [
-      "Egyptian Food"
+      "Egyptian Food",
+      "Greek Food"
     ]
   }
 ]
