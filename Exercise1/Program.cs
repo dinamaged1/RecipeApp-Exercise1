@@ -190,11 +190,22 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     return true;
 }
 
-static bool AddCategory(List<string> categoryList)
+static void AddCategory(List<string> categoryList)
+{
+    string newCategory = AnsiConsole.Ask<string>("What's the name of category you want to add?");
+    if(newCategory != "")
+    {
+        AnsiConsole.WriteLine($"{newCategory} Added successfully");
+    }
+    else
+    {
+        AnsiConsole.WriteLine($"Adding new category failed");
+    }
+}
+
+static void EditCategory(List<string> categoryList)
 {
     //TODO
-
-    return true;
 }
 
 static string ConsoleSelection(string[] list)
