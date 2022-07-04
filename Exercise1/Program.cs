@@ -9,10 +9,20 @@ using System.Text.Json;
 using Spectre.Console;
 
 //Desrialize recipe file and category file
-string recipeJson = await ReadJsonFile("recipe");
-string categoryJson = await ReadJsonFile("category");
-var savedRecipes = JsonSerializer.Deserialize<List<Recipe>>(recipeJson);
-var savedCategories = JsonSerializer.Deserialize<List<string>>(categoryJson);
+List<Recipe>? savedRecipes = new();
+List<String>? savedCategories = new();
+try
+{
+    string recipeJson = await ReadJsonFile("recipe");
+    string categoryJson = await ReadJsonFile("category");
+    savedRecipes = JsonSerializer.Deserialize<List<Recipe>>(recipeJson);
+    savedCategories = JsonSerializer.Deserialize<List<string>>(categoryJson);
+}
+catch (Exception ex)
+{
+    AnsiConsole.WriteLine($"[red1]{ex.Message}[/]");
+    return;
+}
 
 //Create list of recipes and list of categories
 List<Recipe> recipesList = new List<Recipe>(savedRecipes!);
@@ -88,12 +98,18 @@ await File.WriteAllTextAsync($"{fileName}.json", fileData);
 
 static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
 {
+
     //Get the data of the recipe from the user
     string title = AnsiConsole.Ask<string>("What's recipe name?");
     string instructions = AnsiConsole.Ask<string>("What's recipe instructions? (ex: milk-sugar-cocoa powder)");
     string ingerdiants = AnsiConsole.Ask<string>("What's recipe ingerdiants? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
     var categories = ConsoleMultiSelection(categoryList, "What's recipe categories?");
 
+    if(string.IsNullOrEmpty(title)|| string.IsNullOrEmpty(instructions) || string.IsNullOrEmpty(ingerdiants))
+    {
+        AnsiConsole.WriteLine("[red3_1]Input data is not complete. please enter valid data![/]");
+        return;
+    }
     //Split ingerdiants and instructions to be a list
     List<string> ingerdiantsList = instructions.Split('-').ToList();
     List<string> instructionsList = ingerdiants.Split('-').ToList();
@@ -104,13 +120,25 @@ static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
     recipesList.Add(newRecipe);
 
     //Serialize recipe list and write it to recipe file
-    var options = new JsonSerializerOptions { WriteIndented = true };
-    string jsonString = JsonSerializer.Serialize(recipesList, options);
-    await WriteJsonFile("recipe", jsonString);
+    try
+    {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(recipesList, options);
+        await WriteJsonFile("recipe", jsonString);
+    }
+    catch(Exception ex)
+    { 
+        AnsiConsole.WriteLine($"[red1]{ex.Message}[/]");
+        Environment.Exit(0);
+    }
 }
 
 static void ListRecipes(List<Recipe> recipesList)
 {
+    if(recipesList.Count == 0)
+    {
+        AnsiConsole.WriteLine("No recipes yet 🙁");
+    }
     //create table to view all recipes
     var recipeTable = new Table();
     recipeTable.AddColumn("Recipe Title");
@@ -140,7 +168,8 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     AnsiConsole.WriteLine("what do you want to edit");
     string[] avaliableEdits = new string[] { "Title", "Instructions", "Ingerdiants", "Categories", "Exit" };
     string typeOfEdit = ConsoleSelection(avaliableEdits, "How can I serve you?");
-    if (selectedRecipe == null) { 
+    if (selectedRecipe == null)
+    {
         AnsiConsole.WriteLine("Edit faild!");
         return;
     }
@@ -228,18 +257,18 @@ static async void EditCategory(List<string> categoryList, List<Recipe> recipesLi
     string newCategoryName = AnsiConsole.Ask<string>("What's the new name of the category?");
     if (newCategoryName != null)
     {
-        int indexOfEdited=categoryList.FindIndex(x => x == oldCategoryName);
-        categoryList[indexOfEdited]=newCategoryName;
+        int indexOfEdited = categoryList.FindIndex(x => x == oldCategoryName);
+        categoryList[indexOfEdited] = newCategoryName;
         var options = new JsonSerializerOptions { WriteIndented = true };
         string jsonString = JsonSerializer.Serialize(categoryList, options);
         await WriteJsonFile("category", jsonString);
-        for (int i=0;i<recipesList.Count;i++)
+        for (int i = 0; i < recipesList.Count; i++)
         {
-            for(int j=0;j< recipesList[i].Categories.Count;j++)
+            for (int j = 0; j < recipesList[i].Categories.Count; j++)
             {
-                if (recipesList[i].Categories[j]== oldCategoryName)
+                if (recipesList[i].Categories[j] == oldCategoryName)
                 {
-                    recipesList[i].Categories[j]=newCategoryName;
+                    recipesList[i].Categories[j] = newCategoryName;
                 }
             }
         }
