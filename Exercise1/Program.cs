@@ -30,18 +30,18 @@ string[] choices = new string[] { "Recipe", "Category", "Exit" };
 while (true)
 {
     choices = new string[] { "Recipe", "Category", "Exit" };
-    string firstMenuChoice = ConsoleSelection(choices);
+    string firstMenuChoice = ConsoleSelection(choices, "How can I serve you?");
     var secondMenuChoice = "";
     switch (firstMenuChoice)
     {
         case "Recipe":
             choices = new string[] { "Add recipe", "Edit recipe", "List recipes", "Exit" };
-            secondMenuChoice = ConsoleSelection(choices);
+            secondMenuChoice = ConsoleSelection(choices, "How can I serve you?");
             break;
 
         case "Category":
             choices = new string[] { "Add Category", "Edit Category", "Exit" };
-            secondMenuChoice = ConsoleSelection(choices);
+            secondMenuChoice = ConsoleSelection(choices, "How can I serve you?");
 
             break;
 
@@ -69,6 +69,9 @@ while (true)
         case "Add Category":
             AddCategory(categoryList);
             break;
+        case "Edit Category":
+            EditCategory(categoryList, recipesList);
+            break;
         case "Exit":
             return;
 
@@ -89,7 +92,7 @@ static async Task<bool> AddRecipe(List<string> categoryList, List<Recipe> recipe
     string title = AnsiConsole.Ask<string>("What's recipe name?");
     string instructions = AnsiConsole.Ask<string>("What's recipe instructions? (ex: milk-sugar-cocoa powder)");
     string ingerdiants = AnsiConsole.Ask<string>("What's recipe ingerdiants? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
-    var categories = ConsoleMultiSelection(categoryList);
+    var categories = ConsoleMultiSelection(categoryList, "What's recipe categories?");
     List<string> ingerdiandsList = instructions.Split('-').ToList();
     List<string> instructionsList = ingerdiants.Split('-').ToList();
     Guid guid = Guid.NewGuid();
@@ -133,7 +136,7 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     //
     AnsiConsole.WriteLine("what do you want to edit");
     string[] avaliableEdits = new string[] { "Title", "Instructions", "Ingerdiants", "Categories", "Exit" };
-    string typeOfEdit = ConsoleSelection(avaliableEdits);
+    string typeOfEdit = ConsoleSelection(avaliableEdits, "How can I serve you?");
     if (selectedRecipe == null) { return false; }
     switch (typeOfEdit)
     {
@@ -174,7 +177,7 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             }
             break;
         case "Categories":
-            List<string> newRecipeCategories = ConsoleMultiSelection(categoryList);
+            List<string> newRecipeCategories = ConsoleMultiSelection(categoryList, "What's recipe categories ? ");
             if (newRecipeCategories != null)
             {
                 selectedRecipe.Categories = newRecipeCategories;
@@ -185,7 +188,6 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
                 return false;
             }
             break;
-
     }
     return true;
 }
@@ -193,8 +195,12 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
 static void AddCategory(List<string> categoryList)
 {
     string newCategory = AnsiConsole.Ask<string>("What's the name of category you want to add?");
-    if(newCategory != "")
+    if (newCategory != "")
     {
+        categoryList.Add(newCategory);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(categoryList, options);
+        WriteJsonFile("category", jsonString);
         AnsiConsole.WriteLine($"{newCategory} Added successfully");
     }
     else
@@ -203,19 +209,43 @@ static void AddCategory(List<string> categoryList)
     }
 }
 
-static void EditCategory(List<string> categoryList)
+static void EditCategory(List<string> categoryList, List<Recipe> recipesList)
 {
-    //TODO
+    string oldCategoryName = ConsoleSelection(categoryList.ToArray(), "Which category you want to edit?");
+    string newCategoryName = AnsiConsole.Ask<string>("What's the new name of the category?");
+    if (newCategoryName != null)
+    {
+        int indexOfEdited=categoryList.FindIndex(x => x == oldCategoryName);
+        categoryList[indexOfEdited]=newCategoryName;
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(categoryList, options);
+        WriteJsonFile("category", jsonString);
+        for (int i=0;i<recipesList.Count;i++)
+        {
+            for(int j=0;j< recipesList[i].Categories.Count;j++)
+            {
+                if (recipesList[i].Categories[j]== oldCategoryName)
+                {
+                    recipesList[i].Categories[j]=newCategoryName;
+                }
+            }
+        }
+        AnsiConsole.WriteLine($"Category edited successfuly");
+    }
+    else
+    {
+        AnsiConsole.WriteLine($"Adding new category failed");
+    }
 }
 
-static string ConsoleSelection(string[] list)
+static string ConsoleSelection(string[] list, string question)
 {
     var action = "";
 
     //Show user avaliable actions
     action = AnsiConsole.Prompt(
        new SelectionPrompt<string>()
-           .Title("How can I serve you?")
+           .Title(question)
            .PageSize(10)
            .MoreChoicesText("[grey](Move up and down to reveal more)[/]")
            .AddChoices(list)
@@ -233,14 +263,14 @@ static Guid RecipeSelection(List<Recipe> recipesList)
            .AddChoices(recipesList.Select((recipe, Index) => $"{Index + 1}-{recipe.Title}"))
 );
     string indexOfSelectedRecipe = selectedRecipe.Split('-')[0];
-    return recipesList[Convert.ToInt32(indexOfSelectedRecipe)-1].Id;
+    return recipesList[Convert.ToInt32(indexOfSelectedRecipe) - 1].Id;
 }
 
-static List<string> ConsoleMultiSelection(List<string> categoryList)
+static List<string> ConsoleMultiSelection(List<string> categoryList, string question)
 {
     var selectedCategories = AnsiConsole.Prompt(
         new MultiSelectionPrompt<string>()
-           .Title("What's recipe categories?")
+           .Title(question)
            .NotRequired()
            .PageSize(10)
            .MoreChoicesText("[grey](Move up and down to reveal more categories)[/]")
