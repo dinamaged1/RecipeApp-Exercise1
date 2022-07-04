@@ -8,8 +8,6 @@ using Exercise1;
 using System.Text.Json;
 using Spectre.Console;
 
-
-
 //Desrialize recipe file and category file
 string recipeJson = await ReadJsonFile("recipe");
 string categoryJson = await ReadJsonFile("category");
@@ -55,7 +53,7 @@ while (true)
     switch (secondMenuChoice)
     {
         case "Add recipe":
-            bool addingStatus = await AddRecipe(categoryList, recipesList);
+            await AddRecipe(categoryList, recipesList);
             break;
 
         case "List recipes":
@@ -69,9 +67,11 @@ while (true)
         case "Add Category":
             AddCategory(categoryList);
             break;
+
         case "Edit Category":
             EditCategory(categoryList, recipesList);
             break;
+
         case "Exit":
             return;
 
@@ -86,24 +86,27 @@ await File.ReadAllTextAsync($"{fileName}.json");
 static async Task WriteJsonFile(string fileName, string fileData) =>
 await File.WriteAllTextAsync($"{fileName}.json", fileData);
 
-static async Task<bool> AddRecipe(List<string> categoryList, List<Recipe> recipesList)
+static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
 {
     //Get the data of the recipe from the user
     string title = AnsiConsole.Ask<string>("What's recipe name?");
     string instructions = AnsiConsole.Ask<string>("What's recipe instructions? (ex: milk-sugar-cocoa powder)");
     string ingerdiants = AnsiConsole.Ask<string>("What's recipe ingerdiants? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
     var categories = ConsoleMultiSelection(categoryList, "What's recipe categories?");
-    List<string> ingerdiandsList = instructions.Split('-').ToList();
+
+    //Split ingerdiants and instructions to be a list
+    List<string> ingerdiantsList = instructions.Split('-').ToList();
     List<string> instructionsList = ingerdiants.Split('-').ToList();
+
+    //Create the guid and add the recipe to the list
     Guid guid = Guid.NewGuid();
-    Recipe newRecipe = new Recipe(guid, title, instructionsList, ingerdiandsList, categories);
+    Recipe newRecipe = new Recipe(guid, title, instructionsList, ingerdiantsList, categories);
     recipesList.Add(newRecipe);
 
-    //Serialize recipe list and add it to recipe file
+    //Serialize recipe list and write it to recipe file
     var options = new JsonSerializerOptions { WriteIndented = true };
     string jsonString = JsonSerializer.Serialize(recipesList, options);
     await WriteJsonFile("recipe", jsonString);
-    return true;
 }
 
 static void ListRecipes(List<Recipe> recipesList)
@@ -126,7 +129,7 @@ static void ListRecipes(List<Recipe> recipesList)
     AnsiConsole.Write(recipeTable);
 }
 
-static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
+static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
 {
     //Get the recipe that user want to edit
     Guid recipeSelectedGuid = RecipeSelection(recipesList);
@@ -137,7 +140,10 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     AnsiConsole.WriteLine("what do you want to edit");
     string[] avaliableEdits = new string[] { "Title", "Instructions", "Ingerdiants", "Categories", "Exit" };
     string typeOfEdit = ConsoleSelection(avaliableEdits, "How can I serve you?");
-    if (selectedRecipe == null) { return false; }
+    if (selectedRecipe == null) { 
+        AnsiConsole.WriteLine("Edit faild!");
+        return;
+    }
     switch (typeOfEdit)
     {
         case "Title":
@@ -149,7 +155,6 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             else
             {
                 AnsiConsole.WriteLine("Edit faild!");
-                return false;
             }
             break;
         case "Instructions":
@@ -161,7 +166,6 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             else
             {
                 AnsiConsole.WriteLine("Edit faild!");
-                return false;
             }
             break;
         case "Ingerdiants":
@@ -173,7 +177,6 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             else
             {
                 AnsiConsole.WriteLine("Edit faild!");
-                return false;
             }
             break;
         case "Categories":
@@ -185,23 +188,33 @@ static bool EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             else
             {
                 AnsiConsole.WriteLine("Edit faild!");
-                return false;
             }
             break;
+        case "Exit":
+            Environment.Exit(0);
+            break;
+        default:
+            break;
     }
-    return true;
 }
 
-static void AddCategory(List<string> categoryList)
+static async void AddCategory(List<string> categoryList)
 {
     string newCategory = AnsiConsole.Ask<string>("What's the name of category you want to add?");
     if (newCategory != "")
     {
-        categoryList.Add(newCategory);
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(categoryList, options);
-        WriteJsonFile("category", jsonString);
-        AnsiConsole.WriteLine($"{newCategory} Added successfully");
+        if (!categoryList.Contains(newCategory))
+        {
+            categoryList.Add(newCategory);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(categoryList, options);
+            await WriteJsonFile("category", jsonString);
+            AnsiConsole.WriteLine($"{newCategory} Added successfully");
+        }
+        else
+        {
+            AnsiConsole.WriteLine($"{newCategory} is already in category list");
+        }
     }
     else
     {
@@ -209,7 +222,7 @@ static void AddCategory(List<string> categoryList)
     }
 }
 
-static void EditCategory(List<string> categoryList, List<Recipe> recipesList)
+static async void EditCategory(List<string> categoryList, List<Recipe> recipesList)
 {
     string oldCategoryName = ConsoleSelection(categoryList.ToArray(), "Which category you want to edit?");
     string newCategoryName = AnsiConsole.Ask<string>("What's the new name of the category?");
@@ -219,7 +232,7 @@ static void EditCategory(List<string> categoryList, List<Recipe> recipesList)
         categoryList[indexOfEdited]=newCategoryName;
         var options = new JsonSerializerOptions { WriteIndented = true };
         string jsonString = JsonSerializer.Serialize(categoryList, options);
-        WriteJsonFile("category", jsonString);
+        await WriteJsonFile("category", jsonString);
         for (int i=0;i<recipesList.Count;i++)
         {
             for(int j=0;j< recipesList[i].Categories.Count;j++)
