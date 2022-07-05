@@ -100,23 +100,23 @@ static async Task AddRecipe(List<string> categoryList, List<Recipe> recipesList)
 {
 
     //Get the data of the recipe from the user
-    string title = AnsiConsole.Ask<string>("What's recipe name?");
-    string instructions = AnsiConsole.Ask<string>("What's recipe instructions? (ex: milk-sugar-cocoa powder)");
-    string ingerdiants = AnsiConsole.Ask<string>("What's recipe ingerdiants? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
-    var categories = ConsoleMultiSelection(categoryList, "What's recipe categories?");
+    string title = AnsiConsole.Ask<string>("What's the recipe name?");
+    string instructions = AnsiConsole.Ask<string>("What's the recipe ingredients? (ex: milk-sugar-cocoa powder)");
+    string ingredients = AnsiConsole.Ask<string>("What's the recipe instructions? (ex: Pour in the Milk-Add cocoa powder-Add sugar)");
+    var categories = ConsoleMultiSelection(categoryList, "What's the recipe categories?");
 
-    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(instructions) || string.IsNullOrEmpty(ingerdiants))
+    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(instructions) || string.IsNullOrEmpty(ingredients))
     {
         AnsiConsole.WriteLine("[red3_1]Input data is not complete. please enter valid data![/]");
         return;
     }
-    //Split ingerdiants and instructions to be a list
-    List<string> ingerdiantsList = instructions.Split('-').ToList();
-    List<string> instructionsList = ingerdiants.Split('-').ToList();
+    //Split ingredients and instructions to be a list
+    List<string> ingredientsList = instructions.Split('-').ToList();
+    List<string> instructionsList = ingredients.Split('-').ToList();
 
     //Create the guid and add the recipe to the list
     Guid guid = Guid.NewGuid();
-    Recipe newRecipe = new Recipe(guid, title, instructionsList, ingerdiantsList, categories);
+    Recipe newRecipe = new Recipe(guid, title, instructionsList, ingredientsList, categories);
     recipesList.Add(newRecipe);
 
     //Serialize recipe list and write it to recipe file
@@ -143,7 +143,7 @@ static void ListRecipes(List<Recipe> recipesList)
     //create table to view all recipes
     var recipeTable = new Table();
     recipeTable.AddColumn("Recipe Title");
-    recipeTable.AddColumn("Ingrediants");
+    recipeTable.AddColumn("Ingredients");
     recipeTable.AddColumn("Instructions");
     recipeTable.AddColumn("Category");
     recipeTable.Border(TableBorder.Rounded);
@@ -151,9 +151,17 @@ static void ListRecipes(List<Recipe> recipesList)
 
     foreach (Recipe recipe in recipesList)
     {
-        recipeTable.AddRow($"[yellow]{recipe.Title}[/]", " -" + string.Join("\n -", recipe.Ingerdiants), " -" + string.Join("\n -", recipe.Instructions), " -" + string.Join("\n -", recipe.Categories));
-        recipeTable.AddRow("-------------", "------------", "-------------------", "----------------");
-    }
+        try
+        {
+            recipeTable.AddRow($"[yellow]{recipe.Title}[/]", " -" + string.Join("\n -", recipe.Ingredients), " -" + string.Join("\n -", recipe.Instructions), " -" + string.Join("\n -", recipe.Categories));
+            recipeTable.AddRow("-------------", "------------", "-------------------", "----------------");
+        }
+        catch(Exception ex)
+        {
+            AnsiConsole.Markup($"[red]{ex.Message}[/]");
+            Environment.Exit(0);
+        }
+        }
 
     AnsiConsole.Write(recipeTable);
 }
@@ -162,13 +170,11 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
 {
     //Get the recipe that user want to edit
     Guid recipeSelectedGuid = RecipeSelection(recipesList);
-    Console.WriteLine(recipeSelectedGuid);
     var selectedRecipe = recipesList.FirstOrDefault(x => x.Id == recipeSelectedGuid);
 
     //ask user about the edits want then edit the data needed
-    AnsiConsole.WriteLine("what do you want to edit");
-    string[] avaliableEdits = new string[] { "Title", "Instructions", "Ingerdiants", "Categories", "Exit" };
-    string typeOfEdit = ConsoleSelection(avaliableEdits, "How can I serve you?");
+    string[] avaliableEdits = new string[] { "Edit title", "Edit instructions", "Edit ingredients", "Edit categories", "Exit" };
+    string typeOfEdit = ConsoleSelection(avaliableEdits, "What do you want to edit");
     if (selectedRecipe == null)
     {
         AnsiConsole.WriteLine("Edit faild!");
@@ -176,7 +182,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
     }
     switch (typeOfEdit)
     {
-        case "Title":
+        case "Edit title":
             string newRecipeTitle = AnsiConsole.Ask<string>("What's the new title?");
             if (newRecipeTitle != "")
             {
@@ -188,7 +194,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             }
             break;
 
-        case "Instructions":
+        case "Edit instructions":
             string newRecipeInstructions = AnsiConsole.Ask<string>("What's the new Instructions?(ex: Pour in the Milk-Add cocoa powder-Add sugar)");
             if (newRecipeInstructions != "")
             {
@@ -200,11 +206,11 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             }
             break;
 
-        case "Ingerdiants":
+        case "Edit ingredients":
             string newRecipeIngrediants = AnsiConsole.Ask<string>("What's the new Ingrediants?(ex: milk-water-cocoa powder)");
             if (newRecipeIngrediants != "")
             {
-                selectedRecipe.Ingerdiants = newRecipeIngrediants.Split('-').ToList();
+                selectedRecipe.Ingredients = newRecipeIngrediants.Split('-').ToList();
             }
             else
             {
@@ -212,7 +218,7 @@ static void EditRecipe(List<string> categoryList, List<Recipe> recipesList)
             }
             break;
 
-        case "Categories":
+        case "Edit categories":
             List<string> newRecipeCategories = ConsoleMultiSelection(categoryList, "What's recipe categories ? ");
             if (newRecipeCategories != null)
             {
@@ -305,7 +311,7 @@ static Guid RecipeSelection(List<Recipe> recipesList)
 {
     var selectedRecipe = AnsiConsole.Prompt(
        new SelectionPrompt<string>()
-           .Title("How can I serve you?")
+           .Title("Which recipe you want to edit?")
            .PageSize(10)
            .MoreChoicesText("[grey](Move up and down to reveal more)[/]")
            .AddChoices(recipesList.Select((recipe, Index) => $"{Index + 1}-{recipe.Title}"))
